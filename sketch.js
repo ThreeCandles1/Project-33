@@ -7,28 +7,43 @@ const Body = Matter.Body;
 const Composites = Matter.Composites;
 const Composite = Matter.Composite;
 
-
 let engine;
 let world;
-var plank;
-var ground;
-var higherground;
-var con;
-var con2;
-var rope;
-var bubble,bubble_img;
+var rope,fruit,ground;
+var fruit_con;
+var fruit_con_2;
 
+var bg_img;
+var food;
+var rabbit;
+
+var button,blower;
+var bunny;
+var blink,eat,sad;
+var mute_button;
+var button1 , button2
+var rope1,rope2
+var bk_song;
+var cut_sound;
+var sad_sound;
+var eating_sound;
+var air;
+var fruit_con_1
 function preload()
 {
-  bubble_img = loadImage("bubble.png")
   bg_img = loadImage('background.png');
   food = loadImage('melon.png');
   rabbit = loadImage('Rabbit-01.png');
 
+  bk_song = loadSound('sound1.mp3');
+  sad_sound = loadSound("sad.wav")
+  cut_sound = loadSound('rope_cut.mp3');
+  eating_sound = loadSound('eating_sound.mp3');
+  air = loadSound('air.wav');
+
   blink = loadAnimation("blink_1.png","blink_2.png","blink_3.png");
   eat = loadAnimation("eat_0.png" , "eat_1.png","eat_2.png","eat_3.png","eat_4.png");
   sad = loadAnimation("sad_1.png","sad_2.png","sad_3.png");
-  star_img = loadImage('star.png');
   
   blink.playing = true;
   eat.playing = true;
@@ -38,68 +53,84 @@ function preload()
 }
 
 function setup() {
-  createCanvas(500,800);
+  //createCanvas(500,700);
+ var isMobile=/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
+ if(isMobile){
+  canW=displayWidth;
+  canH=displayHeight;
+  createCanvas(displayWidth+80,displayHeight)
+ }
+ else{
+canW=windowWidth;
+canH=windowHeight;
+createCanvas(windowWidth,windowHeight)
+ }
   frameRate(80);
+
+  bk_song.play();
+  bk_song.setVolume(0.5);
+
   engine = Engine.create();
   world = engine.world;
+  
+  button = createImg('cut_btn.png');
+  button.position(10,30);
+  button.size(50,50);
+  button.mouseClicked(drop);
 
-   var fruit_options = {
-    restitution: 0.8
-  }
-  
-  ground =new Ground(250,height-10,width,20);
-  fruit = Bodies.circle(100,400,15,fruit_options);
-  World.add(world,fruit);
-  
-  bubble = createSprite(290,460,20,20);
-  bubble.addImage(bubble_img);
-  bubble.scale = 0.1;
-  
-  //bunny sprite
+  button1 = createImg('cut_btn.png');
+  button1.position(250,40);
+  button1.size(55,55);
+   button1.mouseClicked(drop1);
+
+  button2= createImg('cut_btn.png');
+  button2.position(365,145);
+  button2.size(50,50);
+   button2.mouseClicked(drop2);
+
+  // blower=createImg('balloon.png')
+  // blower.position(10,240)
+  // blower.size(125,100)
+  // blower.mouseClicked(airBlow);
+
+  mute_button= createImg('mute.png')
+  mute_button.position(430,10)
+  mute_button.size(50,50)
+  mute_button.mouseClicked(mute)
+  rope = new Rope(7,{x:40,y:30});
+  ground = new Ground(200,canH,600,20);
+  rope1=new Rope(5,{x:280,y:40});
+  rope2=new Rope (6,{x:395,y:150});
+
   blink.frameDelay = 20;
   eat.frameDelay = 20;
-  bunny = createSprite(270,100,100,100);
-  bunny.addImage(rabbit);
+
+  bunny = createSprite(420,canH-80,100,100);
   bunny.scale = 0.2;
-  higherground =new Ground(300,170,100,10);
 
   bunny.addAnimation('blinking',blink);
   bunny.addAnimation('eating',eat);
   bunny.addAnimation('crying',sad);
   bunny.changeAnimation('blinking');
-
-  rope = new Rope(5,{x:230,y:330});
-  rope2 = new Rope(4,{x:50,y:450});
-  con = new Link(rope,fruit);
-  con2 = new Link(rope2,fruit);
-
-  //btn 1
-  button = createImg('cut_btn.png');
-  button.position(200,320);
-  button.size(50,50);
   
+  fruit = Bodies.circle(300,300,20);
+  Matter.Composite.add(rope.body,fruit);
 
-  button2 = createImg('cut_btn.png');
-  button2.position(30,420);
-  button2.size(50,50);
+  fruit_con = new Link(rope,fruit);
+  fruit_con_1=new Link (rope1,fruit);
+  fruit_con_2=new Link (rope2,fruit);
 
-  //button2.Clicked(drop);
-  
-  //button2.mousePress(drop);
-  
-  //button2.mouseClick(drop);
-
-  button2.mouseClicked(drop);
-
+  rectMode(CENTER);
   ellipseMode(RADIUS);
+  textSize(50)
+  
 }
 
 function draw() 
 {
   background(51);
-  image(bg_img,0,0,width,height);
-  Engine.update(engine);
-  
+  image(bg_img,0,0,displayWidth,displayHeight);
+
   push();
   imageMode(CENTER);
   if(fruit!=null){
@@ -107,59 +138,49 @@ function draw()
   }
   pop();
 
-  ground.show();
-  higherground.show();
   rope.show();
+  rope1.show();
   rope2.show();
-
-  if(collide(fruit,bunny,80)==true)
-  {
-   remove_rope();
-   bubble.visible = false;
-    World.remove(engine.world,fruit);
-    fruit = null;
-    //bunny.change('eating');
-
-    bunny.changeAnimation('eating');
-
-    //bunny.changeAnimation();
-
-    //bunny.Animation('eating');
-  }
-  
-  if(collide(fruit,bubble,40) == true)
-    {
-      engine.world.gravity.y = -1;
-      bubble.position.x = fruit.position.x;
-      bubble.position.y = fruit.position.y;
-    }
+  Engine.update(engine);
+  ground.show();
 
   drawSprites();
 
+  if(collide(fruit,bunny)==true)
+  {
+    bunny.changeAnimation('eating');
+    eating_sound.play()
+  }
+
+
+  if(fruit!=null && fruit.position.y>=650)
+  {
+    bunny.changeAnimation('crying');
+    fruit=null;
+     sad_sound.play()
+     bk_song.stop()
+   }
+   
 }
 
 function drop()
 {
-  rope2.break();
-  con2.dettach();
-  con2 = null; 
-}
-
-function remove_rope()
-{
   rope.break();
-  con.dettach();
-  con = null; 
+  fruit_con.detach();
+  fruit_con = null; 
+  cut_sound.play()
 }
 
-function collide(body,sprite,x)
+
+function collide(body,sprite)
 {
   if(body!=null)
         {
          var d = dist(body.position.x,body.position.y,sprite.position.x,sprite.position.y);
-          if(d<=x)
+          if(d<=80)
             {
-              
+              World.remove(engine.world,fruit);
+               fruit = null;
                return true; 
             }
             else{
@@ -168,3 +189,31 @@ function collide(body,sprite,x)
          }
 }
 
+
+function airBlow(){
+Matter.Body.applyForce(fruit,{x:0,y:0},{x:0.03,y:0})
+air.play()
+}
+
+
+function mute(){
+  if (bk_song.isPlaying()){
+    bk_song.stop()
+  }
+  else{
+    bk_song.play()
+  }
+}
+
+function drop1(){
+  cut_sound.play()
+  rope1.break()
+  fruit_con_1.detach()
+  fruit_con_1=null
+}
+function drop2(){
+  cut_sound.play()
+  rope2.break()
+  fruit_con_2.detach()
+  fruit_con_2=null
+}
